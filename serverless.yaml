@@ -1,36 +1,40 @@
-# serverless.yml
-service: my-lambda-service
+service: 'serverless-app'
 
 provider:
   name: aws
-  runtime: python3.9  # Changed to Python runtime
-  region: ap-south-1
-  stage: test
+  runtime: python3.9
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
   environment:
-    PYTHON_ENV: test
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-          Resource: "*"
-
-functions:
-  helloWorld:
-    handler: src/test.handler  # Updated path to src/test.py
-    events:
-      - httpApi:
-          path: /hello
-          method: GET
-    memorySize: 128
-    timeout: 30
+    STAGE: ${self:provider.stage}
+  
+plugins:
+  - serverless-python-requirements
+  - serverless-package-python-functions
 
 package:
-  patterns:
-    - '!node_modules/**'  # Still excluding Node.js artifacts (not needed)
-    - '!package.json'
-    - '!package-lock.json'
-    - 'src/**'  # Include the src folder
+  individually: true
+  excludeDevDependencies: true
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    useStaticCache: true
+  packagePythonFunctions:
+    buildDir: build
+
+functions:
+  hello:
+    handler: src/test.hello
+    events:
+      - http:
+          path: hello
+          method: get
+  
+  world:
+    handler: src/test.world
+    events:
+      - http:
+          path: world
+          method: get
