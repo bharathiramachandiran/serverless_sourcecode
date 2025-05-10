@@ -1,0 +1,36 @@
+# serverless.yml
+service: my-lambda-service
+
+provider:
+  name: aws
+  runtime: python3.9  # Changed to Python runtime
+  region: ap-south-1
+  stage: test
+  environment:
+    PYTHON_ENV: test
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+functions:
+  helloWorld:
+    handler: src/test.handler  # Updated path to src/test.py
+    events:
+      - httpApi:
+          path: /hello
+          method: GET
+    memorySize: 128
+    timeout: 30
+
+package:
+  patterns:
+    - '!node_modules/**'  # Still excluding Node.js artifacts (not needed)
+    - '!package.json'
+    - '!package-lock.json'
+    - 'src/**'  # Include the src folder
