@@ -1,3 +1,50 @@
+# service: 'serverless-app'
+
+# provider:
+#   name: aws
+#   runtime: python3.9
+#   stage: ${opt:stage, 'test'}
+#   region: ${opt:region, 'ap-south-1'}
+#   environment:
+#     STAGE: ${self:provider.stage}
+  
+# plugins:
+#   - serverless-python-requirements
+#   - serverless-package-python-functions
+
+# package:
+#   individually: true
+#   excludeDevDependencies: true
+
+# custom:
+#   pythonRequirements:
+#     dockerizePip: true
+#     slim: true
+#     useStaticCache: true
+#   packagePythonFunctions:
+#     buildDir: build
+#     requirementsFile: requirements.txt  # Specify the requirements file
+#     globalRequirements:
+#       - src/requirements.txt  # Path to your global requirements file
+#     cleanup: true  # Clean temporary files
+#     individually: true  # Individual packaging for each function
+
+# functions:
+#   hello:
+#     handler: src/test.hello
+#     events:
+#       - http:
+#           path: hello
+#           method: get
+  
+#   world:
+#     handler: src/test.world
+#     events:
+#       - http:
+#           path: world
+#           method: get
+
+
 service: 'serverless-app'
 
 provider:
@@ -10,7 +57,6 @@ provider:
   
 plugins:
   - serverless-python-requirements
-  - serverless-package-python-functions
 
 package:
   individually: true
@@ -21,13 +67,6 @@ custom:
     dockerizePip: true
     slim: true
     useStaticCache: true
-  packagePythonFunctions:
-    buildDir: build
-    requirementsFile: requirements.txt  # Specify the requirements file
-    globalRequirements:
-      - src/requirements.txt  # Path to your global requirements file
-    cleanup: true  # Clean temporary files
-    individually: true  # Individual packaging for each function
 
 functions:
   hello:
