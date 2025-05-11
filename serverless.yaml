@@ -3,8 +3,8 @@ service: 'serverless-app'
 provider:
   name: aws
   runtime: python3.9
-  stage: ${opt:stage, 'dev'}
-  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'test'}
+  region: ${opt:region, 'ap-south-1'}
   environment:
     STAGE: ${self:provider.stage}
   
