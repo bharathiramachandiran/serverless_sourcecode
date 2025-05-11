@@ -23,6 +23,11 @@ custom:
     useStaticCache: true
   packagePythonFunctions:
     buildDir: build
+    requirementsFile: requirements.txt  # Specify the requirements file
+    globalRequirements:
+      - src/requirements.txt  # Path to your global requirements file
+    cleanup: true  # Clean temporary files
+    individually: true  # Individual packaging for each function
 
 functions:
   hello:
