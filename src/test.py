@@ -1,27 +1,11 @@
-import json
-
 def hello(event, context):
-    body = {
-        "message": "Hello function executed successfully!",
-        "input": event
-    }
-
-    response = {
+    return {
         "statusCode": 200,
-        "body": json.dumps(body)
+        "body": "Hello from Serverless!"
     }
-
-    return response
 
 def world(event, context):
-    body = {
-        "message": "World function executed successfully!",
-        "input": event
-    }
-
-    response = {
+    return {
         "statusCode": 200,
-        "body": json.dumps(body)
+        "body": "Hello World from Serverless!"
     }
-
-    return response
