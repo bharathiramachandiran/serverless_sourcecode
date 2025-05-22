@@ -126,7 +126,6 @@ functions:
       USER_CONTACTS_TABLE_NAME: user_contacts
       USER_DETAILS_TABLE_NAME: user_details
     package: 
-      #artifact: ${self:custom.pkgLocation.buildDir}/${self:custom.envfile.APPLICATION_PREFIX}-${self:provider.stage}-user_login.zip
       patterns:
         - src/usermangement/**
     timeout: 30
@@ -148,7 +147,6 @@ functions:
       USER_CONTACTS_TABLE_NAME: user_contacts
       USER_DETAILS_TABLE_NAME: user_details
     package: 
-      #artifact: ${self:custom.pkgLocation.buildDir}/${self:custom.envfile.APPLICATION_PREFIX}-${self:provider.stage}-user_login.zip
       patterns:
         - src/usermangement/**
     timeout: 30
@@ -226,38 +224,6 @@ functions:
         
 resources:
   Resources:
-    lambdaRole:
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: !Sub ${self:custom.envfile.APPLICATION_PREFIX}-${self:provider.stage}-lambda-role
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Action:
-                - "sts:AssumeRole"
-              Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-        Policies:
-          - PolicyName: lambda-roles
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - "logs:CreateLogGroup"
-                    - "logs:CreateLogStream"
-                    - "logs:PutLogEvents"
-                  Resource:
-                    - 'Fn::Join':
-                      - ':'
-                      -
-                        - 'arn:aws:logs'
-                        - Ref: 'AWS::Region'
-                        - Ref: 'AWS::AccountId'
-                        - 'log-group:/aws/lambda/*:*:*'
-
     CognitoUserPool:
       Type: AWS::Cognito::UserPool
       Properties:
@@ -343,7 +309,3 @@ resources:
         ProviderARNs:
           - !GetAtt CognitoUserPool.Arn                        
          
-# plugins:
-#   - serverless-plugin-log-retention
-#   - serverless-offline-lambda
-#   - serverless-offlin
