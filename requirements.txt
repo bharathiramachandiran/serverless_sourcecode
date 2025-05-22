@@ -1,3 +1,0 @@
-# Add your Python dependencies here
-# This file should be placed in the root of your serverless_sourcecode repository
-boto3>=1.20.0
