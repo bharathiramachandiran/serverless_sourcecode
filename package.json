@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "serverless-deployment-bucket": "latest",
+    "serverless-export-env": "latest",
+    "serverless-functions-base-path": "^1.0.33",
+    "serverless-plugin-typescript": "latest"
+  }
+}

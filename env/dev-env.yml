@@ -1,0 +1,6 @@
+DEFAULT_LAMBDA_LOG_RETENTION_IN_DAYS: 90
+APPLICATION_PREFIX: finops-backend
+DATABASE_SECRET_ID: finops-dev-db-credentials
+APPLICATION_ENV: dev
+DEPLOYMENT_BUCKET: finops-backend-backend
+REGION: ap-south-1

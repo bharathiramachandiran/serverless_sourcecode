@@ -1,0 +1,349 @@
+service: finops-serverless-backend-resources
+
+frameworkVersion: '3'
+configValidationMode: error
+
+provider:
+  name: aws
+  stackTags:
+    STAGE: ${self:custom.envfile.APPLICATION_ENV}
+    Project: "finopsreport"
+    Subproject: "backend"
+  runtime: nodejs20.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'ap-south-1'}
+  deploymentBucket:
+    name: ${self:custom.envfile.DEPLOYMENT_BUCKET}
+  layers:
+    - { Ref: LambdaDependenciesLambdaLayer } 
+  apiGateway:
+    binaryMediaTypes:
+      - "image/*"
+      - "application/pdf"
+      - "application/msword"
+      - "multipart/form-data"   
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - iam:*
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - KMS:Decrypt
+            - KMS:Encrypt
+            - KMS:CreateKey
+            - KMS:createAlias
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - "secretsmanager:GetSecretValue"
+            - "secretsmanager:DescribeSecret"
+            - "secretsmanager:ListSecretVersionIds"
+            - "secretsmanager:ListSecrets"
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - "ses:*"
+            - "mobiletargeting:*"
+            - "sqs:SendMessage"
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - "cognito-identity:*"
+            - "cognito-idp:*"
+          Resource: "*"  
+
+custom:
+  envfile: ${file(./env/dev-env.yml)}
+  prefix: ${self:custom.envfile.APPLICATION_PREFIX}
+  export-env:
+    enableOffline: true
+  serverless-offline:
+    host: localhost
+    httpPort: 5000
+    lambdaPort: 6000
+  logRetentionInDays: ${self:custom.envfile.DEFAULT_LAMBDA_LOG_RETENTION_IN_DAYS, 90}
+
+package:
+  individually: true
+  excludeDevDependencies: true
+  patterns:
+    - "!src/**"
+    - "!env/**"
+    - "!layers/**"
+    - "!node_modules/**"
+    - "!package-lock.json"
+    - "!package.json"
+    - "!postman/**"
+    - "!README.md"
+    - "!serverless.yml"    
+  
+layers:
+  LambdaDependencies:
+    path: layers/
+    name: finopsreport-${self:custom.envfile.APPLICATION_ENV}-LambdaDependencies
+    description: Lambda dependencies for finops app Lambda Functions
+    compatibleRuntimes:
+      - nodejs20.x
+    compatibleArchitectures:
+      - x86_64
+    licenseInfo: GPLv3
+    retain: false
+
+functions:
+  userRegistration:
+    handler: src/usermangement/user_registration.handler
+    environment:
+      USER_POOL_ID: !Ref CognitoUserPool
+      CLIENT_ID: !Ref CognitoUserPoolClient
+      DATABASE_SECRET_ID: ${self:custom.envfile.DATABASE_SECRET_ID}
+      USERS_TABLE_NAME: users
+      SCHEMA_NAME: finops_report
+      TENANTS_TABLE_NAME: tenants
+      USER_CONTACTS_TABLE_NAME: user_contacts
+      USER_DETAILS_TABLE_NAME: user_details
+    package: 
+      patterns:
+        - src/usermangement/**
+    timeout: 30
+    events:
+      - http:
+          path: /user/register/
+          method: POST
+          cors: true
+
+  userVerification:
+    handler: src/usermangement/user_verification.handler
+    environment:
+      USER_POOL_ID: !Ref CognitoUserPool
+      CLIENT_ID: !Ref CognitoUserPoolClient
+      DATABASE_SECRET_ID: ${self:custom.envfile.DATABASE_SECRET_ID}
+      USERS_TABLE_NAME: users
+      SCHEMA_NAME: finops_report
+      TENANTS_TABLE_NAME: tenants
+      USER_CONTACTS_TABLE_NAME: user_contacts
+      USER_DETAILS_TABLE_NAME: user_details
+    package: 
+      #artifact: ${self:custom.pkgLocation.buildDir}/${self:custom.envfile.APPLICATION_PREFIX}-${self:provider.stage}-user_login.zip
+      patterns:
+        - src/usermangement/**
+    timeout: 30
+    events:
+      - http:
+          path: /user/verify
+          method: POST
+          cors: true
+
+  userLogin:
+    handler: src/usermangement/login.handler
+    environment:
+      USER_POOL_ID: !Ref CognitoUserPool
+      CLIENT_ID: !Ref CognitoUserPoolClient
+      DATABASE_SECRET_ID: ${self:custom.envfile.DATABASE_SECRET_ID}
+      USERS_TABLE_NAME: users
+      SCHEMA_NAME: finops_report
+      TENANTS_TABLE_NAME: tenants
+      USER_CONTACTS_TABLE_NAME: user_contacts
+      USER_DETAILS_TABLE_NAME: user_details
+    package: 
+      #artifact: ${self:custom.pkgLocation.buildDir}/${self:custom.envfile.APPLICATION_PREFIX}-${self:provider.stage}-user_login.zip
+      patterns:
+        - src/usermangement/**
+    timeout: 30
+    events:
+      - http:
+          path: /user/login
+          method: POST
+          cors: true
+
+  userForgetPassword:
+    handler: src/usermangement/forgot_password.handler
+    environment:
+      USER_POOL_ID: !Ref CognitoUserPool
+      CLIENT_ID: !Ref CognitoUserPoolClient
+      DATABASE_SECRET_ID: ${self:custom.envfile.DATABASE_SECRET_ID}
+      USERS_TABLE_NAME: users
+      SCHEMA_NAME: finops_report
+      TENANTS_TABLE_NAME: tenants
+      USER_CONTACTS_TABLE_NAME: user_contacts
+      USER_DETAILS_TABLE_NAME: user_details
+    package:
+      patterns:
+        - src/usermangement/**
+    timeout: 30    
+    events:
+      - http:
+          path: user/forgot-password/
+          method: post
+          cors: true
+      - http:
+          path: /user/forgot-password/confirm/
+          method: post
+          cors: true   
+
+  resendSignupOtp:
+    handler: src/usermangement/resend_otp_signup.handler
+    environment:
+      USER_POOL_ID: !Ref CognitoUserPool
+      CLIENT_ID: !Ref CognitoUserPoolClient
+      DATABASE_SECRET_ID: ${self:custom.envfile.DATABASE_SECRET_ID}
+      USERS_TABLE_NAME: users
+      SCHEMA_NAME: finops_report
+      TENANTS_TABLE_NAME: tenants
+      USER_CONTACTS_TABLE_NAME: user_contacts
+      USER_DETAILS_TABLE_NAME: user_details
+    package:
+      patterns:
+        - src/usermangement/**
+    timeout: 30    
+    events:
+      - http:
+          path: user/signup/resend_otp/
+          method: post
+          cors: true    
+
+  resendForgotPasswordOtp:
+    handler: src/usermangement/resend_otp_forgotPassword.handler
+    environment:
+      USER_POOL_ID: !Ref CognitoUserPool
+      CLIENT_ID: !Ref CognitoUserPoolClient
+      DATABASE_SECRET_ID: ${self:custom.envfile.DATABASE_SECRET_ID}
+      USERS_TABLE_NAME: users
+      SCHEMA_NAME: finops_report
+      TENANTS_TABLE_NAME: tenants
+      USER_CONTACTS_TABLE_NAME: user_contacts
+      USER_DETAILS_TABLE_NAME: user_details
+    package:
+      patterns:
+        - src/usermangement/**
+    events:
+      - http:
+          path: user/forgorpassword/resend_otp/
+          method: post
+          cors: true    
+        
+resources:
+  Resources:
+    lambdaRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: !Sub ${self:custom.envfile.APPLICATION_PREFIX}-${self:provider.stage}-lambda-role
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Action:
+                - "sts:AssumeRole"
+              Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+        Policies:
+          - PolicyName: lambda-roles
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "logs:CreateLogGroup"
+                    - "logs:CreateLogStream"
+                    - "logs:PutLogEvents"
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      -
+                        - 'arn:aws:logs'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'log-group:/aws/lambda/*:*:*'
+
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: !Sub ${self:custom.prefix}-${self:custom.envfile.APPLICATION_ENV}-UserPool
+        # AliasAttributes:
+        #   - phone_number
+        #   - email
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: verified_email
+              Priority: 1
+        AdminCreateUserConfig:
+          AllowAdminCreateUserOnly: false
+        MfaConfiguration: "OFF"
+        AutoVerifiedAttributes:
+          - email
+        UsernameAttributes:
+          - email
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireLowercase: False
+            RequireNumbers: False
+            RequireSymbols: False
+            RequireUppercase: False
+        Schema:
+          - Name: email
+            AttributeDataType: String
+            Mutable: true
+            Required: true
+          - Name: tenant_id
+            AttributeDataType: String
+            Mutable: true
+            Required: false
+          - Name: user_id
+            AttributeDataType: String
+            Mutable: true
+            Required: false
+          - Name: role
+            AttributeDataType: String
+            Mutable: true
+            Required: false    
+        #   - Name: phone_number
+        #     AttributeDataType: String
+        #     Mutable: true
+        #     Required: false
+        VerificationMessageTemplate:
+          DefaultEmailOption: CONFIRM_WITH_CODE
+          EmailMessage: "Your verification code is {####}"
+          EmailSubject: "Your verification code"
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: !Sub ${self:custom.prefix}-${self:custom.envfile.APPLICATION_ENV}-UserPoolClient
+        UserPoolId: !Ref CognitoUserPool
+        SupportedIdentityProviders:
+          - COGNITO
+        ExplicitAuthFlows:
+          - ALLOW_ADMIN_USER_PASSWORD_AUTH
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_CUSTOM_AUTH
+        GenerateSecret: false
+        IdTokenValidity: 1413 # 23.55 Hours
+        AccessTokenValidity: 30
+        RefreshTokenValidity: 1
+        TokenValidityUnits:
+          AccessToken: "minutes"
+          IdToken: "minutes"
+          RefreshToken: "days"    
+
+    ApiGatewayAuthorizer:
+      DependsOn:
+        - ApiGatewayRestApi
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: !Sub ${self:custom.prefix}-${self:custom.envfile.APPLICATION_ENV}-cognito-authorizer
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        Type: COGNITO_USER_POOLS
+        ProviderARNs:
+          - !GetAtt CognitoUserPool.Arn                        
+         
+# plugins:
+#   - serverless-plugin-log-retention
+#   - serverless-offline-lambda
+#   - serverless-offlin

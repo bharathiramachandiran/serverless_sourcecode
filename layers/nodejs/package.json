@@ -1,0 +1,20 @@
+{
+  "name": "finops-layers",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Meyicloud",
+  "license": "ISC",
+  "devDependencies": {
+    "auth0": "^4.2.0",
+    "axios": "1.6.2",
+    "jsonschema": "^1.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "latest",
+    "sequelize": "^6.35.2",
+    "sequelize-cli": "^6.6.2",
+    "serverless-deployment-bucket": "latest"
+  }
+}
